@@ -8,7 +8,7 @@ class AESCipher:
 		self.bs = 32
 		self.key = hashlib.sha256(AESCipher.str_to_bytes(key)).digest()
 
-	@staticmethod	
+	@staticmethod
 	def str_to_bytes(data):
 		u_type = type(b''.decode('utf-8'))
 		if isinstance(data, u_type):
@@ -35,8 +35,3 @@ class AESCipher:
 		return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
 
 c = AESCipher('sanamjujeongyohlee')
-data = 'hello'
-enc = c.encrypt(data)
-dec = c.decrypt(enc)
-print(enc)
-print(dec)

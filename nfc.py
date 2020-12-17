@@ -342,6 +342,42 @@ def is_valid_intra_info(intra_id, intra_pw):
     else:
         return True
 
+import base64
+import hashlib
+from Crypto import Random
+from Crypto.Cipher import AES
+
+class AESCipher:
+	def __init__(self, key):
+		self.bs = 32
+		self.key = hashlib.sha256(AESCipher.str_to_bytes(key)).digest()
+
+	@staticmethod
+	def str_to_bytes(data):
+		u_type = type(b''.decode('utf-8'))
+		if isinstance(data, u_type):
+			return data.encode('utf-8')
+		return data
+
+	def _pad(self, s):
+		return s + (self.bs - len(s) % self.bs) * AESCipher.str_to_bytes(chr(self.bs - len(s) % self.bs))
+	
+	@staticmethod
+	def _unpad(s):
+		return s[:-ord(s[len(s)-1:])]
+	
+	def encrypt(self, raw):
+		raw = self._pad(AESCipher.str_to_bytes(raw))
+		iv = Random.new().read(AES.block_size)
+		cipher = AES.new(self.key, AES.MODE_CBC, iv)
+		return base64.b64encode(iv + cipher.encrypt(raw)).decode('utf-8')
+
+	def decrypt(self, enc):
+		enc = base64.b64decode(enc)
+		iv = enc[:AES.block_size]
+		cipher = AES.new(self.key, AES.MODE_CBC, iv)
+		return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
+
 # 'INTRA_ID', 'INTRA_PW', 'UID_1', 'UID_2', 'UID_3', 'UID_4', 'NAVER_ID', 'NAVER_PW'
 def write_csv(data, uids):
     with open('db.csv', 'a', newline='', encoding='utf-8') as f:
@@ -388,6 +424,9 @@ if __name__ == "__main__":
     s.bind((host, port))
     s.listen(1)
 
+    # key 값을 input으로 받고, 그 key가 지정한 key와 같은지 확인하는 api server를 두는것도 괜찮을듯!
+    aes_cipher = AESCipher('sanamjujeongyohlee')
+
     while True:
         uids = run_server()
         # uids = get_nfc_ids()
@@ -431,17 +470,29 @@ if __name__ == "__main__":
                     intra_id = input('User ID: ')
                     intra_pw = getpass.getpass()
                     is_valid = is_valid_intra_info(intra_id, intra_pw)
+
+                    enc_intra_id = aes_cipher.encrypt(intra_id)
+                    enc_intra_pw = aes_cipher.encrypt(intra_pw)
                     if is_valid == True:
                         print('new id')
                         naver_id, naver_pw = getNaverIdAndPassword()
+
+                        enc_naver_id = aes_cipher.encrypt(naver_id)
+                        enc_naver_pw = aes_cipher.encrypt(naver_pw)
+
                         user_infos = dict()
-                        user_infos['intra_id'] = intra_id
-                        user_infos['intra_pw'] = intra_pw
-                        user_infos['naver_id'] = naver_id
-                        user_infos['naver_pw'] = naver_pw
+                        user_infos['intra_id'] = enc_intra_id
+                        user_infos['intra_pw'] = enc_intra_pw
+                        user_infos['naver_id'] = enc_naver_id
+                        user_infos['naver_pw'] = enc_naver_pw
                         write_csv(user_infos, uids)
                         print('store success! tag one more your id card')
-                        
+
+                        user_infos['intra_id'] = aes_cipher.decrypt(enc_intra_id)
+                        user_infos['intra_pw'] = aes_cipher.decrypt(enc_intra_pw)
+                        user_infos['naver_id'] = aes_cipher.decrypt(enc_naver_id)
+                        user_infos['naver_pw'] = aes_cipher.decrypt(enc_naver_pw)
+
                         makeUserQR(user_infos)
                         speech_description(1)
                         break
@@ -450,13 +501,13 @@ if __name__ == "__main__":
                         continue
             else:
                 print("exist")
-                dududunga(data[i][0], data[i][1])
+                dududunga(aes_cipher.decrypt(data[i][0]), aes_cipher.decrypt(data[i][1]))
                 # TODO 5. QR 설정
                 # 1. cd intra_id 폴더로 이동
                 # 2. npm run build& 정상적으로 서버가 실행되면 
                 # 3. wget ~~~ 이미지 가져오기
                 # 4. Rasberry2 에 전송
-                os.system('cd ' + data[i][0] + '&& npm run build')
+                os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build')
 
                 # 저장된 인트라 아이디/비번을 이용하여 로그인
                     # 실패 -> 위 처리 다시 시도
