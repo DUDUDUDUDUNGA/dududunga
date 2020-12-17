@@ -414,6 +414,17 @@ def run_server():
 	conn.close()
 	return msg
 
+def display_qr(server_ip, pid):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # s.connect(('127.0.0.1', 5001))
+        s.connect((server_ip, 5001))
+        go = "1"
+        s.send(go.encode())
+        resp = s.recv(1024)
+        # os.system('kill -15 ' + str(pid))
+        os.system('kill -15 `lsof -i -P -n | grep 3000`')
+        os.wait()
+        print(resp)
 
 if __name__ == "__main__":
     # setup()
@@ -423,6 +434,9 @@ if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((host, port))
     s.listen(1)
+
+    server_ip = input("Enter your Monitor rasberry ip address: ")
+#     display_qr(server_ip)
 
     # key 값을 input으로 받고, 그 key가 지정한 key와 같은지 확인하는 api server를 두는것도 괜찮을듯!
     aes_cipher = AESCipher('sanamjujeongyohlee')
@@ -503,11 +517,16 @@ if __name__ == "__main__":
                 print("exist")
                 dududunga(aes_cipher.decrypt(data[i][0]), aes_cipher.decrypt(data[i][1]))
                 # TODO 5. QR 설정
-                # 1. cd intra_id 폴더로 이동
-                # 2. npm run build& 정상적으로 서버가 실행되면 
-                # 3. wget ~~~ 이미지 가져오기
-                # 4. Rasberry2 에 전송
-                os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build')
+                # 1. 라즈2 신호를 싸줌
+                # os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build')
+                
+                pid = os.fork()
+                if pid == 0:
+                    os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build&')
+                    # 
+
+                else:
+                    display_qr(server_ip, pid)
 
                 # 저장된 인트라 아이디/비번을 이용하여 로그인
                     # 실패 -> 위 처리 다시 시도
