@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*- 
+
 """
     This example will wait for any ISO14443A card or tag, and
     depending on the size of the UID will attempt to read from it.
@@ -18,81 +20,81 @@
     To enable debug message, define DEBUG in nfc/pn532_log.h
 """
 import time
-import binascii
+# import binascii
 
-from pn532pi import Pn532, pn532
-from pn532pi import Pn532I2c
+# from pn532pi import Pn532, pn532
+# from pn532pi import Pn532I2c
 
-def setup():
-    nfc.begin()
+# def setup():
+#     nfc.begin()
 
-    versiondata = nfc.getFirmwareVersion()
-    if (not versiondata):
-        print("Didn't find PN53x board")
-        raise RuntimeError("Didn't find PN53x board")  # halt
+#     versiondata = nfc.getFirmwareVersion()
+#     if (not versiondata):
+#         print("Didn't find PN53x board")
+#         raise RuntimeError("Didn't find PN53x board")  # halt
 
-    #  Got ok data, print it out!
-    print("Found chip PN5 {:#x} Firmware ver. {:d}.{:d}".format((versiondata >> 24) & 0xFF, (versiondata >> 16) & 0xFF,
-                                                                (versiondata >> 8) & 0xFF))
+#     #  Got ok data, print it out!
+#     print("Found chip PN5 {:#x} Firmware ver. {:d}.{:d}".format((versiondata >> 24) & 0xFF, (versiondata >> 16) & 0xFF,
+#                                                                 (versiondata >> 8) & 0xFF))
 
-    #  configure board to read RFID tags
-    nfc.SAMConfig()
+#     #  configure board to read RFID tags
+#     nfc.SAMConfig()
 
-    print("Waiting for an ISO14443A Card ...")
+#     print("Waiting for an ISO14443A Card ...")
 
 
-def get_nfc_ids():
-    #  Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
-    #  'uid' will be populated with the UID, and uidLength will indicate
-    #  if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
-    success, uid = nfc.readPassiveTargetID(pn532.PN532_MIFARE_ISO14443A_106KBPS)
+# def get_nfc_ids():
+#     #  Wait for an ISO14443A type cards (Mifare, etc.).  When one is found
+#     #  'uid' will be populated with the UID, and uidLength will indicate
+#     #  if the uid is 4 bytes (Mifare Classic) or 7 bytes (Mifare Ultralight)
+#     success, uid = nfc.readPassiveTargetID(pn532.PN532_MIFARE_ISO14443A_106KBPS)
 
-    if (success):
-        #  Display some basic information about the card
+#     if (success):
+#         #  Display some basic information about the card
 
-        if (len(uid) == 4):
-            keya = bytearray([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
+#         if (len(uid) == 4):
+#             keya = bytearray([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
 
-            #  Start with block 4 (the first block of sector 1) since sector 0
-            #  contains the manufacturer data and it's probably better just
-            #  to leave it alone unless you know what you're doing
-            success = nfc.mifareclassic_AuthenticateBlock(uid, 4, 0, keya)
+#             #  Start with block 4 (the first block of sector 1) since sector 0
+#             #  contains the manufacturer data and it's probably better just
+#             #  to leave it alone unless you know what you're doing
+#             success = nfc.mifareclassic_AuthenticateBlock(uid, 4, 0, keya)
 
-            if (success):
-                #  If you want to write something to block 4 to test with, uncomment
-                #  the following line and this text should be read back in a minute
-                # data = bytearray([ 'a', 'd', 'a', 'f', 'r', 'u', 'i', 't', '.', 'c', 'o', 'm', 0, 0, 0, 0])
-                # success = nfc.mifareclassic_WriteDataBlock (4, data)
+#             if (success):
+#                 #  If you want to write something to block 4 to test with, uncomment
+#                 #  the following line and this text should be read back in a minute
+#                 # data = bytearray([ 'a', 'd', 'a', 'f', 'r', 'u', 'i', 't', '.', 'c', 'o', 'm', 0, 0, 0, 0])
+#                 # success = nfc.mifareclassic_WriteDataBlock (4, data)
 
-                #  Try to read the contents of block 4
-                success, data = nfc.mifareclassic_ReadDataBlock(4)
+#                 #  Try to read the contents of block 4
+#                 success, data = nfc.mifareclassic_ReadDataBlock(4)
 
-                if (success):
-                    uids = [uid.hex()[:2], uid.hex()[2:4], uid.hex()[4:6], uid.hex()[6:]]
-                    print("uids: ", uids)
-                    return uids
+#                 if (success):
+#                     uids = [uid.hex()[:2], uid.hex()[2:4], uid.hex()[4:6], uid.hex()[6:]]
+#                     print("uids: ", uids)
+#                     return uids
 
-                else:
-                    print("Ooops ... unable to read the requested block.  Try another key?")
-            else:
-                print("Ooops ... authentication failed: Try another key?")
+#                 else:
+#                     print("Ooops ... unable to read the requested block.  Try another key?")
+#             else:
+#                 print("Ooops ... authentication failed: Try another key?")
 
-        elif (len(uid) == 7):
-            #  We probably have a Mifare Ultralight card ...
-            print("Seems to be a Mifare Ultralight tag (7 byte UID)")
+#         elif (len(uid) == 7):
+#             #  We probably have a Mifare Ultralight card ...
+#             print("Seems to be a Mifare Ultralight tag (7 byte UID)")
 
-            #  Try to read the first general-purpose user page (#4)
-            print("Reading page 4")
-            success, data = nfc.mifareultralight_ReadPage(4)
-            if (success):
-                #  Data seems to have been read ... spit it out
-                binascii.hexlify(data)
-                return 0
+#             #  Try to read the first general-purpose user page (#4)
+#             print("Reading page 4")
+#             success, data = nfc.mifareultralight_ReadPage(4)
+#             if (success):
+#                 #  Data seems to have been read ... spit it out
+#                 binascii.hexlify(data)
+#                 return 0
 
-            else:
-                print("Ooops ... unable to read the requested page!?")
+#             else:
+#                 print("Ooops ... unable to read the requested page!?")
 
-    return 0
+#     return 0
 
 ### check reservation
 import requests
@@ -205,6 +207,7 @@ def dududunga(id, password):
                                                         allow_redirects=False)
                 if res.status_code == 302 and res.headers["Location"] == "https://signin.intra.42.fr/users/sign_in":
                         print("Invalid user id or password")
+                        play_music(id, is_warning=True)
                         exit()
 
                 # TODO: 아래 함수화 하기
@@ -339,33 +342,60 @@ def is_valid_intra_info(intra_id, intra_pw):
     else:
         return True
 
-# 'INTRA_ID', 'INTRA_PW', 'UID_1', 'UID_2', 'UID_3', 'UID_4'
-def write_csv(intra_id, intra_pw, uids):
+# 'INTRA_ID', 'INTRA_PW', 'UID_1', 'UID_2', 'UID_3', 'UID_4', 'NAVER_ID', 'NAVER_PW'
+def write_csv(data, uids):
     with open('db.csv', 'a', newline='', encoding='utf-8') as f:
         wr = csv.writer(f)
-        wr.writerow([intra_id, intra_pw, uids[0], uids[1], uids[2], uids[3]])
+        wr.writerow([data['intra_id'], data['intra_pw'], uids[0], uids[1], uids[2], uids[3], data['naver_id'], data['naver_pw']])
 
-PN532_I2C = Pn532I2c(1)
-nfc = Pn532(PN532_I2C)
+def getNaverIdAndPassword():
+    naver_id = input("naver id: ")
+    naver_password = getpass.getpass()
+    return naver_id, naver_password
+
+def makeUserQR(user_infos):
+    os.system('cp -r covid19-qrcode ' + user_infos['intra_id'])
+    os.system('cd ' + user_infos['intra_id'] + '&& sed "s/NAVER_ID/'+ user_infos['naver_id'] +'/g" ./app/controllers/qr.controller_copy.ts > ./app/controllers/qr.controller1.ts')
+    os.system('cd ' + user_infos['intra_id'] + '&& sed "s/NAVER_PW/'+ user_infos['naver_pw'] +'/g" ./app/controllers/qr.controller1.ts > ./app/controllers/qr.controller.ts')
+    os.system('cd ' + user_infos['intra_id'] + '&& npm i')
+    os.system('cd ' + user_infos['intra_id'] + '/app/controllers && rm qr.controller1.ts qr.controller_copy.ts')
+    # os.system('cd ' + user_infos['intra_id'] + '/app/controllers && rm qr.controller1.ts qr.controller_copy.ts')
+
+
+# PN532_I2C = Pn532I2c(1)
+# nfc = Pn532(PN532_I2C)
+
+import os
 
 if __name__ == "__main__":
-    setup()
+    # setup()
     while True:
-        uids = get_nfc_ids()
-        while not uids:
-            uids = get_nfc_ids()
-        # uids = ['22','7a','f2','37']
+        # TODO 1. MAIN_SERVER 
+
+        # TODO 2. receive from RasberryPi 1
+        # uids = get_nfc_ids()
+        # while not uids:
+        #     uids = get_nfc_ids()
+        uids = ['22','70','fe','36']
+
         with open('db.csv', 'r', newline='', encoding='utf-8') as f:
             datas = csv.reader(f)
             data = list(datas)[1:]
+            #TODO: 수정필요
             if (len(data) == 0):
-                write_csv(uids)
+                user_infos = dict()
+                user_infos['intra_id'] = intra_id
+                user_infos['intra_pw'] = intra_pw
+                user_infos['naver_id'] = naver_id
+                user_infos['naver_pw'] = naver_pw
+                write_csv(user_infos, uids)
+                # write_csv(uids)
                 f = open('db.csv', 'r', newline='', encoding='utf-8')
                 datas = csv.reader(f)
                 data = list(datas)[1:]
             stored_uids = []
             for row in data:
-                stored_uids.append(row[2:])
+                stored_uids.append(row[2:6])
             flag = 0;
             print(stored_uids)
             i = 0
@@ -377,7 +407,6 @@ if __name__ == "__main__":
                     flag = 1
                 i += 1
             if flag == 1:
-                play_
                 # 아이패드 ssh에 아이디/비번 입력하게 함.
                 speech_description(0)
                 for i in range(5):
@@ -387,21 +416,31 @@ if __name__ == "__main__":
                     is_valid = is_valid_intra_info(intra_id, intra_pw)
                     if is_valid == True:
                         print('new id')
-                        write_csv(intra_id, intra_pw, uids)
+                        naver_id, naver_pw = getNaverIdAndPassword()
+                        user_infos = dict()
+                        user_infos['intra_id'] = intra_id
+                        user_infos['intra_pw'] = intra_pw
+                        user_infos['naver_id'] = naver_id
+                        user_infos['naver_pw'] = naver_pw
+                        write_csv(user_infos, uids)
                         print('store success! tag one more your id card')
+                        
+                        makeUserQR(user_infos)
                         speech_description(1)
                         break
                     else:
                         play_music(intra_id, is_warning=True)
                         continue
-                    # 경고음 
-
-                #print("new id")
-                #write_csv(uids)
-                # NFC 태깅하게 하자
             else:
                 print("exist")
                 dududunga(data[i][0], data[i][1])
+                # TODO 5. QR 설정
+                # 1. cd intra_id 폴더로 이동
+                # 2. npm run build& 정상적으로 서버가 실행되면 
+                # 3. wget ~~~ 이미지 가져오기
+                # 4. Rasberry2 에 전송
+                os.system('cd ' + data[i][0] + '&& npm run build')
+
                 # 저장된 인트라 아이디/비번을 이용하여 로그인
                     # 실패 -> 위 처리 다시 시도
                 # 크롤링 후 예약시간조회
