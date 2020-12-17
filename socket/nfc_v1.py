@@ -54,20 +54,19 @@ def get_nfc_ids():
 import socket
 import pickle
 
-def run(uid):
+def run(uid, server_ip, port = 4001):
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+		# s.connect((server_ip, port))
 		s.connect(('172.30.1.46', 4001))
 		data=pickle.dumps(uid)
-		print("data :", data)
-		print("data type :", type(data))
 		s.send(data)
 
 if __name__ == '__main__':
+	server_ip = input("Enter your Mac ip address: ")
 	setup()
 	while True:
 		uid = get_nfc_ids()
 		while not uid:
 			uid = get_nfc_ids()
-		print(type(uid.decode()))
-		run(uid)
+		run(uid, server_ip)
 		time.sleep(3)

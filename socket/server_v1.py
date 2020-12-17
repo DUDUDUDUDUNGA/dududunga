@@ -216,10 +216,12 @@ def write_csv(intra_id, intra_pw, uids):
 		wr.writerow([intra_id, intra_pw, uids[0], uids[1], uids[2], uids[3]])
 
 import socket
+import pickle
 
 def run_server():
 	conn, addr = s.accept()
 	msg = conn.recv(1024)
+	msg = pickle.loads(msg)
 	# msg = list(msg)
 	conn.close()
 	return msg
@@ -238,11 +240,11 @@ if __name__ == "__main__":
 		with open('db.csv', 'r', newline='', encoding='utf-8') as f:
 			datas = csv.reader(f)
 			data = list(datas)[1:]
-			if (len(data) == 0):
-				write_csv(uids)
-				f = open('db.csv', 'r', newline='', encoding='utf-8')
-				datas = csv.reader(f)
-				data = list(datas)[1:]
+			# if (len(data) == 0):
+			# 	write_csv(uids)
+			# 	f = open('db.csv', 'r', newline='', encoding='utf-8')
+			# 	datas = csv.reader(f)
+			# 	data = list(datas)[1:]
 			stored_uids = []
 			for row in data:
 				stored_uids.append(row[2:])
@@ -256,6 +258,8 @@ if __name__ == "__main__":
 				else:
 					flag = 1
 				i += 1
+			if len(data) == 0:
+				flag = 1
 			if flag == 1:
 				# 아이패드 ssh에 아이디/비번 입력하게 함.
 				for i in range(5):
