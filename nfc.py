@@ -365,18 +365,35 @@ def makeUserQR(user_infos):
 # PN532_I2C = Pn532I2c(1)
 # nfc = Pn532(PN532_I2C)
 
+
+import socket
+import pickle
 import os
+
+def run_server():
+	conn, addr = s.accept()
+	msg = conn.recv(1024)
+	msg = pickle.loads(msg)
+	# msg = list(msg)
+	conn.close()
+	return msg
+
 
 if __name__ == "__main__":
     # setup()
-    while True:
-        # TODO 1. MAIN_SERVER 
 
-        # TODO 2. receive from RasberryPi 1
+    host = ''
+    port = 4001
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((host, port))
+    s.listen(1)
+
+    while True:
+        uids = run_server()
         # uids = get_nfc_ids()
         # while not uids:
         #     uids = get_nfc_ids()
-        uids = ['22','70','fe','36']
+        # uids = ['22','70','fe','36']
 
         with open('db.csv', 'r', newline='', encoding='utf-8') as f:
             datas = csv.reader(f)

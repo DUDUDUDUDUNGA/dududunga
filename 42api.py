@@ -2,8 +2,8 @@ import requests
 
 def get_user_info(access_token):
 
-	headers = {'Authorization': 'Bearer YOUR_ACCESS_TOKEN'}
-	response = requests.get('https://api.intra.42.fr/v2/users/INTRA_NAME', headers=headers)
+	headers = {'Authorization': 'Bearer ' + access_token}
+	response = requests.get('https://api.intra.42.fr/v2/users/yohlee', headers=headers)
 	if (response.status_code != 200):
 		print('Error')
 	else:
@@ -28,4 +28,4 @@ def get_access_token():
 	access_token = response.json()['access_token']
 	get_user_info(access_token)
 
-# get_access_token()
+get_access_token()
