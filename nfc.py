@@ -416,14 +416,21 @@ def run_server():
 
 def display_qr(server_ip, pid):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        print("debug 3")
+        time.sleep(5)
         # s.connect(('127.0.0.1', 5001))
         s.connect((server_ip, 5001))
+        print("debug 4")
         go = "1"
         s.send(go.encode())
+        print("debug 5")
         resp = s.recv(1024)
+        print("debug 6")
         # os.system('kill -15 ' + str(pid))
-        os.system('kill -15 `lsof -i -P -n | grep 3000`')
+        # os.system('kill -15 `lsof -i -P -n | grep 3000 | awk \'{print$2}\'`')
+        print("debug 7")
         os.wait()
+        print("debug 8")
         print(resp)
 
 if __name__ == "__main__":
@@ -522,10 +529,17 @@ if __name__ == "__main__":
                 
                 pid = os.fork()
                 if pid == 0:
+                    print("debug 1")
                     os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build&')
-                    # 
+                    time.sleep(10)
+                    print("debug 2")
+                    print("npm pid is below")
+                    os.system('lsof -i -P -n | grep 3000 | awk \'{print$2}\'')
+                    os.system('kill -15 `lsof -i -P -n | grep 3000 | awk \'{print$2}\'`')
+                    exit
 
                 else:
+                    print("child pid: {}".format(pid))
                     display_qr(server_ip, pid)
 
                 # 저장된 인트라 아이디/비번을 이용하여 로그인
