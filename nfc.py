@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 """
     This example will wait for any ISO14443A card or tag, and
@@ -229,8 +229,9 @@ def dududunga(id, password):
                         play_music(id, is_dududunga=True)
                 else:
                         print("NOT RESERE!")
-                        play_music(id, is_warning=True)
+                        # play_music(id, is_warning=True)
                         speech_description(7)
+                        play_music(id, is_dududunga=True)
 
 import pygame
 
@@ -240,7 +241,7 @@ def play_music(intra_id, is_warning=False, is_dududunga=False):
                 pygame.mixer.init(44100, -16, 1, 2048)
                 pygame.mixer.music.load('speech/warning.wav')
                 pygame.mixer.music.play()
-                while pygame.mixer.music.get_busy(): 
+                while pygame.mixer.music.get_busy():
                         pygame.time.Clock().tick(10)
                 pygame.mixer.quit()
         else:
@@ -269,7 +270,7 @@ def play_music(intra_id, is_warning=False, is_dududunga=False):
                 pygame.mixer.init(44100, -16, 1, 2048)
                 pygame.mixer.music.load('speech/speech.mp3')
                 pygame.mixer.music.play()
-                while pygame.mixer.music.get_busy(): 
+                while pygame.mixer.music.get_busy():
                     pygame.time.Clock().tick(10)
                 pygame.mixer.quit()
 
@@ -277,7 +278,7 @@ def play_music(intra_id, is_warning=False, is_dududunga=False):
                     pygame.mixer.init(44100, -16, 1, 2048)
                     pygame.mixer.music.load('speech/dududunga.mp3')
                     pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy(): 
+                    while pygame.mixer.music.get_busy():
                         pygame.time.Clock().tick(10)
                     pygame.mixer.quit()
 
@@ -360,7 +361,7 @@ def speech_description(sequence):
 		pygame.mixer.init(16000, -16, 1, 2048)
 		pygame.mixer.music.load('speech/speech_description.mp3')
 		pygame.mixer.music.play()
-		while pygame.mixer.music.get_busy(): 
+		while pygame.mixer.music.get_busy():
 			pygame.time.Clock().tick(10)
 		pygame.mixer.quit()
 
@@ -420,11 +421,11 @@ class AESCipher:
 
 	def _pad(self, s):
 		return s + (self.bs - len(s) % self.bs) * AESCipher.str_to_bytes(chr(self.bs - len(s) % self.bs))
-	
+
 	@staticmethod
 	def _unpad(s):
 		return s[:-ord(s[len(s)-1:])]
-	
+
 	def encrypt(self, raw):
 		raw = self._pad(AESCipher.str_to_bytes(raw))
 		iv = Random.new().read(AES.block_size)
@@ -473,23 +474,64 @@ def run_server():
 	conn.close()
 	return msg
 
-def display_qr(server_ip, pid):
+def display_qr(server_ip, id, pw):
+    print(id, pw)
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+    import time
+    import pyperclip
+    from bs4 import BeautifulSoup
+
+    driver = webdriver.Chrome()
+    driver.get('https://nid.naver.com/login/privacyQR')
+    time.sleep(1)
+
+    # id, pw 입력할 곳을 찾습니다.
+    tag_id = driver.find_element_by_name('id')
+    tag_pw = driver.find_element_by_name('pw')
+    # tag_id.clear()
+    time.sleep(1)
+
+    # id 입력
+    tag_id.click()
+    pyperclip.copy(id)
+    tag_id.send_keys(Keys.COMMAND, 'v')
+    time.sleep(1)
+
+    # pw 입력
+    tag_pw.click()
+    pyperclip.copy(pw)
+    tag_pw.send_keys(Keys.COMMAND, 'v')
+    time.sleep(1)
+
+    # 로그인 버튼을 클릭합니다
+    login_btn = driver.find_element_by_id('log.login')
+    # print(login_btn)
+    login_btn.click()
+
+    # 브라우저 등록 클릭
+    driver.find_element_by_xpath('//*[@id="new.save"]').click()
+
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+    # print(html)
+    temp = soup.find('img')['src']
+    print(temp.split(', ')[1])
+
+    import base64
+    data = temp.split(', ')[1]
+    imgdata = base64.b64decode(data)
+    filename = 'qr.jpg'  # I assume you have a way of picking unique filenames
+    with open(filename, 'wb') as f:
+            f.write(imgdata)
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        print("debug 3")
         time.sleep(5)
         # s.connect(('127.0.0.1', 5001))
         s.connect((server_ip, 5001))
-        print("debug 4")
         go = "1"
         s.send(go.encode())
-        print("debug 5")
         resp = s.recv(1024)
-        print("debug 6")
-        # os.system('kill -15 ' + str(pid))
-        # os.system('kill -15 `lsof -i -P -n | grep 3000 | awk \'{print$2}\'`')
-        print("debug 7")
-        os.wait()
-        print("debug 8")
         print(resp)
 
 if __name__ == "__main__":
@@ -572,7 +614,7 @@ if __name__ == "__main__":
                         user_infos['naver_id'] = aes_cipher.decrypt(enc_naver_id)
                         user_infos['naver_pw'] = aes_cipher.decrypt(enc_naver_pw)
 
-                        makeUserQR(user_infos)
+                        # makeUserQR(user_infos)
                         speech_description(1)
                         speech_description(3)
                         break
@@ -587,21 +629,21 @@ if __name__ == "__main__":
                 # TODO 5. QR 설정
                 # 1. 라즈2 신호를 싸줌
                 # os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build')
-                
-                pid = os.fork()
-                if pid == 0:
-                    print("debug 1")
-                    os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build&')
-                    time.sleep(10)
-                    print("debug 2")
-                    print("npm pid is below")
-                    os.system('lsof -i -P -n | grep 3000 | awk \'{print$2}\'')
-                    os.system('kill -15 `lsof -i -P -n | grep 3000 | awk \'{print$2}\'`')
-                    exit
 
-                else:
-                    print("child pid: {}".format(pid))
-                    display_qr(server_ip, pid)
+                # pid = os.fork()
+                # if pid == 0:
+                #     print("debug 1")
+                #     os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build&')
+                #     time.sleep(10)
+                #     print("debug 2")
+                #     print("npm pid is below")
+                #     os.system('lsof -i -P -n | grep 3000 | awk \'{print$2}\'')
+                #     os.system('kill -15 `lsof -i -P -n | grep 3000 | awk \'{print$2}\'`')
+                #     exit
+
+                # else:
+                #     print("child pid: {}".format(pid))
+                display_qr(server_ip, aes_cipher.decrypt(data[i][6]), aes_cipher.decrypt(data[i][7]))
 
                 # 저장된 인트라 아이디/비번을 이용하여 로그인
                     # 실패 -> 위 처리 다시 시도
