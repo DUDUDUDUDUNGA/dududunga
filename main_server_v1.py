@@ -181,7 +181,7 @@ def makeEventUrl():
 def checkUserReserveOrNot(session):
         res = session.get(makeEventUrl())
         js = res.json()
-        print(js)
+        # print(js)
         for i in range(getStartIndexOfEvent(), getLastIndexOfEvent()):
                 ev = js[i]
                 b = ev['is_subscribed']
@@ -225,10 +225,10 @@ def dududunga(id, password):
 
                 b = checkUserReserveOrNot(session)
                 if b == True:
-                        print("Reserve")
+                        print("Reserved!")
                         play_music(id, is_dududunga=True)
                 else:
-                        print("NOT RESERE!")
+                        print("NOT Reserved!")
                         # play_music(id, is_warning=True)
                         speech_description(7)
                         play_music(id, is_dududunga=True)
@@ -515,7 +515,7 @@ def display_qr(server_ip, id, pw):
     soup = BeautifulSoup(html, 'html.parser')
     # print(html)
     temp = soup.find('img')['src']
-    print(temp.split(', ')[1])
+    # print(temp.split(', ')[1])
 
     import base64
     data = temp.split(', ')[1]
@@ -534,7 +534,7 @@ def display_qr(server_ip, id, pw):
         go = data
         s.send(go.encode())
         resp = s.recv(2048)
-        print(resp)
+        # print(resp)
 
 if __name__ == "__main__":
     # setup()
@@ -552,6 +552,7 @@ if __name__ == "__main__":
     aes_cipher = AESCipher('sanamjujeongyohlee')
 
     while True:
+        print("Tag NFC")
         uids = run_server()
 
         with open('db.csv', 'r', newline='', encoding='utf-8') as f:
@@ -573,7 +574,7 @@ if __name__ == "__main__":
             for row in data:
                 stored_uids.append(row[2:6])
             flag = 0;
-            print(stored_uids)
+            # print(stored_uids)
             i = 0
             for stored_id in stored_uids:
                 if stored_id == uids:
@@ -625,31 +626,9 @@ if __name__ == "__main__":
                         speech_description(4)
                         continue
             else:
-                print("exist")
+                print("HELLO " + aes_cipher.decrypt(data[i][0]) + "!")
                 speech_description(5)
                 dududunga(aes_cipher.decrypt(data[i][0]), aes_cipher.decrypt(data[i][1]))
-                # TODO 5. QR 설정
-                # 1. 라즈2 신호를 싸줌
-                # os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build')
-
-                # pid = os.fork()
-                # if pid == 0:
-                #     print("debug 1")
-                #     os.system('cd ' + aes_cipher.decrypt(data[i][0]) + '&& npm run build&')
-                #     time.sleep(10)
-                #     print("debug 2")
-                #     print("npm pid is below")
-                #     os.system('lsof -i -P -n | grep 3000 | awk \'{print$2}\'')
-                #     os.system('kill -15 `lsof -i -P -n | grep 3000 | awk \'{print$2}\'`')
-                #     exit
-
-                # else:
-                #     print("child pid: {}".format(pid))
                 display_qr(server_ip, aes_cipher.decrypt(data[i][6]), aes_cipher.decrypt(data[i][7]))
 
-                # 저장된 인트라 아이디/비번을 이용하여 로그인
-                    # 실패 -> 위 처리 다시 시도
-                # 크롤링 후 예약시간조회
-                    # 실패 -> 경고알림
-                # 두둥등장
         time.sleep(1)
