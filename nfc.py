@@ -475,7 +475,6 @@ def run_server():
 	return msg
 
 def display_qr(server_ip, id, pw):
-    print(id, pw)
     from selenium import webdriver
     from selenium.webdriver.common.keys import Keys
     import time
@@ -490,19 +489,19 @@ def display_qr(server_ip, id, pw):
     tag_id = driver.find_element_by_name('id')
     tag_pw = driver.find_element_by_name('pw')
     # tag_id.clear()
-    time.sleep(1)
+    time.sleep(0.1)
 
     # id 입력
     tag_id.click()
     pyperclip.copy(id)
     tag_id.send_keys(Keys.COMMAND, 'v')
-    time.sleep(1)
+    time.sleep(0.1)
 
     # pw 입력
     tag_pw.click()
     pyperclip.copy(pw)
     tag_pw.send_keys(Keys.COMMAND, 'v')
-    time.sleep(1)
+    time.sleep(0.1)
 
     # 로그인 버튼을 클릭합니다
     login_btn = driver.find_element_by_id('log.login')
@@ -520,18 +519,21 @@ def display_qr(server_ip, id, pw):
 
     import base64
     data = temp.split(', ')[1]
-    imgdata = base64.b64decode(data)
-    filename = 'qr.jpg'  # I assume you have a way of picking unique filenames
-    with open(filename, 'wb') as f:
-            f.write(imgdata)
+    # imgdata = base64.b64decode(data)
+    # filename = 'qr.jpg'  # I assume you have a way of picking unique filenames
+    # with open(filename, 'wb') as f:
+    #         f.write(imgdata)
+
+    driver.close()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         time.sleep(5)
         # s.connect(('127.0.0.1', 5001))
         s.connect((server_ip, 5001))
-        go = "1"
+        # os.system('scp qr.jpg pi@' + server_ip + ':/home/pi')
+        go = data
         s.send(go.encode())
-        resp = s.recv(1024)
+        resp = s.recv(2048)
         print(resp)
 
 if __name__ == "__main__":
