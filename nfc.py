@@ -221,7 +221,6 @@ def dududunga(id, password):
                 #  reservation 쿠키 획득
                 res = session.get(res.headers['Location'], headers=headers, allow_redirects=False)
 
-
                 # checkUserReserveOrNot
 
                 b = checkUserReserveOrNot(session)
@@ -450,10 +449,6 @@ if __name__ == "__main__":
 
     while True:
         uids = run_server()
-        # uids = get_nfc_ids()
-        # while not uids:
-        #     uids = get_nfc_ids()
-        # uids = ['22','70','fe','36']
 
         with open('db.csv', 'r', newline='', encoding='utf-8') as f:
             datas = csv.reader(f)
