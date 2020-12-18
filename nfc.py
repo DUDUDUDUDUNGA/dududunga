@@ -226,17 +226,19 @@ def dududunga(id, password):
                 b = checkUserReserveOrNot(session)
                 if b == True:
                         print("Reserve")
-                        play_music(id)
+                        play_music(id, is_dududunga=True)
                 else:
                         print("NOT RESERE!")
+                        play_music(id, is_warning=True)
+                        speech_description(7)
 
 import pygame
 
-def play_music(intra_id, is_warning=False):
+def play_music(intra_id, is_warning=False, is_dududunga=False):
 
         if is_warning == True:
-                pygame.mixer.init(16000, -16, 1, 2048)
-                pygame.mixer.music.load('warning.wav')
+                pygame.mixer.init(44100, -16, 1, 2048)
+                pygame.mixer.music.load('speech/warning.wav')
                 pygame.mixer.music.play()
                 while pygame.mixer.music.get_busy(): 
                         pygame.time.Clock().tick(10)
@@ -253,22 +255,32 @@ def play_music(intra_id, is_warning=False):
                 <prosody rate="0.7" volume="loud">'\
                 + intra_id\
                 + '</prosody>\
-                <prosody rate="medium" volume="loud">두둥등장! 안녕하세요.</prosody>\
+                <break time="150ms"/>\
                 </speak>\
                 '
+                # <prosody rate="medium" volume="loud">두둥등장! 안녕하세요.</prosody>\
 
                 # <speak> Iwoo. <voice name="MAN_DIALOG_BRIGHT">두둥등장!</voice> </speak> \
                 res = requests.post(kakao_speech_url, headers=headers, data=data.encode('utf-8'))
 
-                with open('a.mp3', 'wb') as f:
-                        f.write(res.content)
+                with open('speech/speech.mp3', 'wb') as f:
+                    f.write(res.content)
 
-                pygame.mixer.init(16000, -16, 1, 2048)
-                pygame.mixer.music.load('a.mp3')
+                pygame.mixer.init(44100, -16, 1, 2048)
+                pygame.mixer.music.load('speech/speech.mp3')
                 pygame.mixer.music.play()
                 while pygame.mixer.music.get_busy(): 
-                        pygame.time.Clock().tick(10)
+                    pygame.time.Clock().tick(10)
                 pygame.mixer.quit()
+
+                if is_dududunga == True:
+                    pygame.mixer.init(44100, -16, 1, 2048)
+                    pygame.mixer.music.load('speech/dududunga.mp3')
+                    pygame.mixer.music.play()
+                    while pygame.mixer.music.get_busy(): 
+                        pygame.time.Clock().tick(10)
+                    pygame.mixer.quit()
+
 
 def speech_description(sequence):
 		kakao_speech_url = 'https://kakaoi-newtone-openapi.kakao.com/v1/synthesize'
@@ -282,23 +294,71 @@ def speech_description(sequence):
 		if sequence == 0:
 			data = '\
 			<speak>\
-			<prosody rate="medium" volume="loud">아이패드에 인트라 아이디와 패스워드를 입력해주세요.</prosody>\
+			<prosody rate="medium" volume="loud">인트라 아이디와 패스워드를 입력해주세요.</prosody>\
+			<break time="150ms"/>\
 			</speak>\
 			'
 		elif sequence == 1:
 			data = '\
 			<speak>\
 			<prosody rate="medium" volume="loud">성공적으로 등록되었습니다.</prosody>\
+			<break time="150ms"/>\
+			</speak>\
+			'
+		elif sequence == 2:
+			data = '\
+			<speak>\
+			<prosody rate="medium" volume="loud">네이버 아이디와 패스워드를 입력해주세요.</prosody>\
+			<break time="150ms"/>\
+			</speak>\
+			'
+		elif sequence == 3:
+			data = '\
+			<speak>\
+			<prosody rate="medium" volume="loud">이제부터 출입카드로 QR체크인까지 할 수 있습니다!</prosody>\
+			<break time="150ms"/>\
+			<prosody rate="medium" volume="loud">기능을 사용하시려면 다시 한 번 출입카드를 태그해주세요.</prosody>\
+			<break time="150ms"/>\
+			</speak>\
+			'
+		elif sequence == 4:
+			data = '\
+			<speak>\
+			<prosody rate="medium" volume="loud">잘못된 정보입니다.</prosody>\
+			<break time="150ms"/>\
+			<prosody rate="medium" volume="loud">다시 한 번 입력해주세요.</prosody>\
+			<break time="150ms"/>\
+			</speak>\
+			'
+		elif sequence == 5:
+			data = '\
+			<speak>\
+			<prosody rate="medium" volume="loud">등록된 정보가 있습니다. QR체크인을 도와드릴게요.</prosody>\
+			<break time="150ms"/>\
+			</speak>\
+			'
+		elif sequence == 6:
+			data = '\
+			<speak>\
+			<prosody rate="medium" volume="loud">등록된 정보가 없습니다.</prosody>\
+			<break time="150ms"/>\
+			</speak>\
+			'
+		elif sequence == 7:
+			data = '\
+			<speak>\
+			<prosody rate="medium" volume="loud">예약되어 있지 않습니다!</prosody>\
+			<break time="150ms"/>\
 			</speak>\
 			'
 
 		res = requests.post(kakao_speech_url, headers=headers, data=data.encode('utf-8'))
 
-		with open('b.mp3', 'wb') as f:
+		with open('speech/speech_description.mp3', 'wb') as f:
 			f.write(res.content)
 
-		pygame.mixer.init(44100, -16, 1, 2048)
-		pygame.mixer.music.load('b.mp3')
+		pygame.mixer.init(16000, -16, 1, 2048)
+		pygame.mixer.music.load('speech/speech_description.mp3')
 		pygame.mixer.music.play()
 		while pygame.mixer.music.get_busy(): 
 			pygame.time.Clock().tick(10)
@@ -480,6 +540,7 @@ if __name__ == "__main__":
                 i += 1
             if flag == 1:
                 # 아이패드 ssh에 아이디/비번 입력하게 함.
+                speech_description(6)
                 speech_description(0)
                 for i in range(5):
                     print('{}번 째 시도'.format(i + 1))
@@ -491,6 +552,8 @@ if __name__ == "__main__":
                     enc_intra_pw = aes_cipher.encrypt(intra_pw)
                     if is_valid == True:
                         print('new id')
+                        speech_description(1)
+                        speech_description(2)
                         naver_id, naver_pw = getNaverIdAndPassword()
 
                         enc_naver_id = aes_cipher.encrypt(naver_id)
@@ -511,12 +574,15 @@ if __name__ == "__main__":
 
                         makeUserQR(user_infos)
                         speech_description(1)
+                        speech_description(3)
                         break
                     else:
                         play_music(intra_id, is_warning=True)
+                        speech_description(4)
                         continue
             else:
                 print("exist")
+                speech_description(5)
                 dududunga(aes_cipher.decrypt(data[i][0]), aes_cipher.decrypt(data[i][1]))
                 # TODO 5. QR 설정
                 # 1. 라즈2 신호를 싸줌
